@@ -15,7 +15,7 @@ const WeatherSection = () => {
 
       console.log('Fetching weather for:', city, 'using WeatherAPI.com');
       
-      const response = await axios.get('http://api.weatherapi.com/v1/current.json', {
+      const response = await axios.get('https://api.weatherapi.com/v1/current.json', {
         params: {
           key: 'c4ab9c7624254889b59152159250208',
           q: city,
@@ -49,7 +49,17 @@ const WeatherSection = () => {
       });
     } catch (err) {
       console.error('WeatherAPI.com error:', err.response?.data || err.message);
-      setError(`Weather data unavailable: ${err.response?.data?.error?.message || err.message}`);
+      
+      // Check for specific error types
+      if (err.code === 'NETWORK_ERROR' || err.message.includes('Network Error')) {
+        setError('Network error: Please check your internet connection and try again.');
+      } else if (err.response?.data?.error?.code === 1006) {
+        setError('City not found. Please try a different city name.');
+      } else if (err.response?.data?.error?.code === 2006) {
+        setError('API key error. Please check your WeatherAPI.com key.');
+      } else {
+        setError(`Weather data unavailable: ${err.response?.data?.error?.message || err.message}`);
+      }
     } finally {
       setLoading(false);
     }
